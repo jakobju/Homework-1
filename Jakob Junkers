@@ -1,0 +1,109 @@
+#Homework 1
+
+#Task 1, How many genes are on chromosome II in saccharomyces_cerevisiae_R64-2-1_20150113.gff?
+
+ls
+#Look at the files.
+
+cd S288C_reference_genome_R64-2-1_20150113/
+#Change directory to S288C_reference_genome_R64-2-1_20150113.
+
+ls
+#Look at the files.
+
+grep 'chrII'$'\t' saccharomyces_cerevisiae_R64-2-1_20150113.gff | wc -l
+#grep searches for patterns and prints matching lines. wc counts the words (number of genes) and -l print the newline counts.
+#output = 1556 So there are 1556 genes on chromosome II in saccharomyces_cerevisiae_R64-2-1_20150113.gff.
+
+#Task 2, Count GC content in S288C_reference_sequence_R64-2-1_20150113.fsa.
+
+grep -v '^>' S288C_reference_sequence_R64-2-1_20150113.fsa | tr -d 'A\|T' | grep . | wc -m
+#-v inverts the sense of matching, to select non-matching lines. ^ means beginning of line. So ^> means lines starting with >.
+#tr -d means deleting characters. So deleting A and T. Thus only counting G and C. -m means print the character counts.
+#output = 4840231 So the number of G and C are 4840231.
+
+GC=$(grep -v '^>' S288C_reference_sequence_R64-2-1_20150113.fsa | tr -d 'A\|T' | grep . | wc -m)
+#Save the output as $GC.
+
+$GC
+#output = 4840231
+#Test $GC. Shows that $GC = 4840231 = the output.
+
+grep -v '^>' S288C_reference_sequence_R64-2-1_20150113.fsa | wc -m
+#Counts all the characters (A, T, C and G).
+#output = 12359733
+
+ATCG=$(grep -v '^>' S288C_reference_sequence_R64-2-1_20150113.fsa | wc -m)
+#Save the output as $ATCG.
+
+$ATCG
+#output = 12359733
+#Test $ATCG. Shows that $ATCG = 12359733
+
+echo "$GC/$ATCG" | bc -l
+#echo displays a line of text. bc is a calculator language and -l defines the standard math library. 
+#Together these commands calculates the ratio of GC.
+#output = .39161290943744496746. So the GC content is 39 %.
+
+#Task 3a, Download and decompress the ORFs of another strain (Y55).
+
+cd ..
+#Change to home directory.
+
+mkdir compare
+#Create a new directory called compare.
+
+cp orf_coding_all_R64-2-1_20150113.fasta compare
+#Copy the file orf_coding_all_R64-2-1_20150113.fasta to the directory called compare.
+
+cd compare
+#Change directory to compare.
+
+wget https://downloads.yeastgenome.org/sequence/strains/Y55/Y55_SGD_2015_JRIF00000000/Y55_JRIF00000000_SGD_cds.fsa.gz
+#Downloads the file.
+
+gunzip Y55_JRIF00000000_SGD_cds.fsa
+#Decompress the file.
+
+grep -v '^>' Y55_JRIF00000000_SGD_cds.fsa | tr -d 'A\|T' | grep . | wc -m
+#output = 3360772
+
+$GC
+#output = 3360772
+
+ATCG=$(grep -v '^>' Y55_JRIF00000000_SGD_cds.fsa | wc -m)
+
+$ATCG
+#output = 8248278
+
+echo "$GC/$ATCG" | bc -l
+#The commands are the same and have the same function as in task 2.
+#output = .40745134923919877579. So the GC content is 41 %.
+#So the GC content is a bit higher in this strain compared to the reference strain.
+
+#3b, Compare number of ORFs between the strains.
+
+grep "^>" orf_coding_all_R64-2-1_20150113.fasta | wc -l
+#Searches for patterns and prints the matching lines. Counts the lines (number of ORFs) starting with > and prints the newline counts. 
+#output = 6713
+
+grep "^>" Y55_JRIF00000000_SGD_cds.fsa | wc -l
+#The same as above.
+#output = 5330
+
+#There are 1383 more ORFs in the reference genome.
+
+#3c, Count the common ORFs between the strains.
+
+grep "^>" ./Y55_JRIF00000000_SGD_cds.fsa | cut -d"_" -f 1 | sort > strain1.txt
+#grep searches for patterns and prints the matching lines. cut —f 1 takes away the first column and -d defines the delimiter.
+#sort sorts the lines of the text file and > saves the output of the previous command to the file strain1.txt
+
+grep "^>" ./orf_coding_all_R64-2-1_20150113.fasta | cut -d" " -f 1 | sort > strain2.txt
+#Same as above but for the other strain.
+
+comm -12 strain1.txt strain2.txt | wc -l
+#comm compares the number of ORFs between the two strains. wc counts the ORFs ande -l print the newline counts.
+#output = 5168
+
+#The different strains have 5168 common ORFs.
